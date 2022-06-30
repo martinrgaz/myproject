@@ -1,0 +1,4 @@
+[powerscales]
+powerscale01 onefs_host=192.168.70.2 powerscaleport=443 verify_ssl=false api_user=admin api_password=qwerty ansible_python_interpreter=/usr/bin/python3.10
+; powerscale02 ...
+

@@ -1,0 +1,39 @@
+---
+- connection: ssh
+  name: Tuesday Playbook  # naming the play
+  hosts: localhost      # describes where the play will run
+  #connection: ssh         # default connection type is ssh - local, ssh, winrm
+  gather_facts: true      # defaults to true - defines ansible_facts of target systems
+
+  tasks:
+      - name: Create a directory if it does not exist
+        file:    # you could also write "ansible.builtin.file:"
+            path: ~/mycode/tuesday-afternoon
+            state: directory
+            mode: '0755'
+      
+      - name: Download some JSON from an OpenAPI
+        ansible.builtin.uri:     # you could also write "uri:"
+            method: GET          # the HTTP method to use
+            url: http://api.open-notify.org/astros.json
+        register: results        # save the results of this operation within the var "results" 
+      
+      - name: Show the "results" var we just created
+        debug:
+            var: results         # special rule when using debug var paramter, you can drop the need for "{{    }}"
+            verbosity: 1         # now this will be skipped unless you run the playbook with "-v"
+
+      - name: Move content from memory into a static file
+        copy:
+            content: "{{ results.json.people }}"     # when you are recalling variables you need to use "{{ var_name_here }}"
+            dest: ~/mycode/tuesday-afternoon/spacetravelers.yml
+      
+
+
+#- name: Tuesday Playbook - second play
+#  hosts: campus-east
+#  connection: local
+#  gather_facts: false
+#
+#  tasks:
+

@@ -1,0 +1,25 @@
+---
+- name: Example of connecting to a Dell PowerScale (old Isilon)
+  connection: local       # not sure
+  hosts: powerscales # this needs to map to an inventory
+  gather_facts: no  # we cant assume there is python on Dell's OS
+
+  # pip requirement:
+  #       python3 -m pip install isi_sdk_9_1_0
+
+  tasks:
+      - name: Get attributes of the PowerScale cluster
+        dellemc.powerscale.info:
+            onefs_host: "{{ onefs_host }}"
+            port_no: "{{ powerscaleport }}"
+            verify_ssl: "{{ verify_ssl }}"
+            api_user: "{{ api_user }}"
+            api_password: "{{ api_password }}"
+            gather_subset:
+                - attributes
+        register: results
+
+      - name: What did we just collect?
+        debug:
+            var: results
+
