@@ -1,0 +1,94 @@
+---
+# Example using vmware.vmware_rest collection
+#
+# module used:
+# https://github.com/ansible-collections/vmware.vmware_rest/blob/main/docs/vmware.vmware_rest.vcenter_vm_module.rst
+#
+- name: Launching a VM with vmware.vmware_rest
+  connection: local   # python3 -m pip install aiohttp
+  hosts: localhost    # no inventory, we only have a single instance to communicate with
+  gather_facts: no
+
+  vars:
+      vcenter_hostname: 192.168.2.72
+      vcenter_username: admin@demo.local
+      vcenter_password: qwerty
+
+
+  tasks:
+    - name: Build a list of all the clusters
+      vmware.vmware_rest.vcenter_cluster_info:
+      register: all_the_clusters
+
+    - name: Retrieve details about the first cluster
+      vmware.vmware_rest.vcenter_cluster_info:
+        cluster: '{{ all_the_clusters.value[0].cluster }}'
+      register: my_cluster_info
+
+    - name: Create a VM
+      vmware.vmware_rest.vcenter_vm:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        placement:
+          cluster: '{{ my_cluster_info.id }}'
+          datastore: "{{ lookup('vmware.vmware_rest.datastore_moid', '/my_dc/datastore/local')\
+            \ }}"
+          folder: '{{ my_virtual_machine_folder.folder }}'
+          resource_pool: '{{ my_cluster_info.value.resource_pool }}'
+        name: test_vm1
+        guest_OS: DEBIAN_7_64
+        hardware_version: VMX_10
+        memory:
+          hot_add_enabled: true
+          size_MiB: 1024
+      register: my_vm
+
+    - name: Display results of launched VM
+      debug:
+          var: my_vm
+
+
+
+
+
+
+
+
+  vars:
+      vcenter_hostname: 192.168.2.83
+      vcenter_username: admin@vsphere.local
+      vcenter_password: Password321  # secure in ansible vault or with a lookup() plugin
+      esxi_hostname: esxi01-alta3.demo.local
+
+  tasks:
+  
+      - name: Create a vm on given ESXi host
+        community.vmware.vmware_guest:
+            hostname: "{{ vcenter_hostname }}"
+            username: "{{ vcenter_username }}"
+            password: "{{ vcenter_password }}"
+            folder: 'vm'
+            name: test_vm_0001  # name of the vm to be launched
+            state: poweredon
+            guest_id: centos64Guest
+            # This is hostname of particular ESXi server on which user wants VM to be deployed
+            esxi_hostname: "{{ esxi_hostname }}"
+            disk:
+            - size_gb: 10
+              type: thin
+              datastore: datastore1
+            hardware:
+              memory_mb: 512
+              num_cpus: 4
+              scsi: paravirtual
+            networks:
+            - name: VM Network
+              mac: aa:bb:dd:aa:00:14
+              ip: 10.10.10.100
+              netmask: 255.255.255.0
+              device_type: vmxnet3
+            wait_for_ip_address: true
+            wait_for_ip_address_timeout: 600
+        register: deploy_vm
+
