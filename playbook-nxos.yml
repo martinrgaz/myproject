@@ -1,0 +1,23 @@
+- name: Example of NXOS playbook
+  hosts: nxos_switches
+  gather_facts: no    # fairly certain yes will work... and will activate cisco.nxos.nxos_facts
+  connection: ansible.netcommon.network_cli
+
+  tasks:
+      - name: Gather only the config and default facts
+        cisco.nxos.nxos_facts:
+            gather_subset:
+            - config
+        register: results
+
+      - name: show results
+        debug:
+            var: results
+
+      - cisco.nxos.nxos_command:
+            commands: show ip int brief
+        register: cmd
+
+      - debug:
+            var: cmd
+
